@@ -121,8 +121,8 @@ def train_model():
         email = session["user"]["email"]
         folderpath = "{}/{}".format(UPLOADS_FOLDER, email)
         if os.path.isfile(folderpath + "/dataset_train.csv"):
-            linear_regression(email)
-            return json.dumps({"status": "complete"})
+            is_success = linear_regression(email)
+            return json.dumps({"status": "complete"}) if is_success else json.dumps({"status":"error"})
         else:
             return json.dumps({"status": "no_files"})
     else:
