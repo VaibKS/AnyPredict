@@ -6,35 +6,39 @@ import os
 from flask import session
 from .models import User
 
-SALT = os.environ['SALT']
+SALT = os.environ["SALT"]
+
 
 def hasher(s: str) -> str:
-    return hashlib.sha256(str(s+SALT).encode()).hexdigest()
+    return hashlib.sha256(str(s + SALT).encode()).hexdigest()
+
 
 def signIn(email: str, password: str) -> bool:
 
-    user = User.objects(email = email)
+    user = User.objects(email=email)
 
     if user.count() == 0:
         return False
-    
+
     user = user[0]
 
-    if hasher(password) == user['password']:
+    if hasher(password) == user["password"]:
         # sign in success
-        session['user'] = {
-            "email": user['email'],
-            "role": user['role']
+        session["user"] = {
+            "name": user["email"],
+            "email": user["email"],
+            "role": user["role"],
         }
-        return session['user']
+        return session["user"]
     else:
         # sign in fail
         return False
 
+
 def getUser():
 
-    if not 'user' in session:
+    if not "user" in session:
         return False
-    
-    user = User.objects.get(email=session['user']['email'])
+
+    user = User.objects.get(email=session["user"]["email"])
     return user

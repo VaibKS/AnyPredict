@@ -34,7 +34,7 @@ def registerUser(user):
     if user_count > 0:
         # User exists
         return {
-            "status": "fail",
+            "status": "error",
             "message": "email-exists"
         }
 
