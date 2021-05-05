@@ -16,6 +16,8 @@ cors = CORS(app)
 app.secret_key = os.environ["SECRET_KEY"]
 app.config["UPLOAD_FOLDER"] = UPLOADS_FOLDER
 
+if not os.path.isdir('uploads'):
+    os.mkdir('uploads')
 
 @app.route("/")
 def hello_world():
