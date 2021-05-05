@@ -1,0 +1,6 @@
+.env
+
+private/
+__pycache__/
+private/
+uploads/
