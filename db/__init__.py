@@ -4,8 +4,6 @@ import time
 
 from mongoengine import connect, Q
 
-from typing import Dict, List
-
 from .models import User
 from .auth import hasher
 
