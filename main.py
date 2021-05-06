@@ -1,6 +1,6 @@
 import os
 import json
-from flask import Flask, session, request, send_file
+from flask import Flask, session, request, send_file, render_template
 from flask_cors import CORS, cross_origin
 from db.auth import signIn
 from db import registerUser
@@ -21,32 +21,35 @@ if not os.path.isdir('uploads'):
 
 @app.route("/")
 def hello_world():
-    return """
-    <!doctype html>
-    <title>Upload new File</title>
-    <h1>Upload new File</h1>
-    <form method=post action="data/upload" enctype=multipart/form-data>
-      <input type=file name=file>
-      <input type=submit value=Upload>
-    </form>
-    <form method="POST" action="auth/sign-in">
-        <h1>Log In</h1>
-        <input type=text name=email>
-        <input type=text name=password>
-      <input type=submit value=Submit>
-    </form>
-    <form method="POST" action="auth/register">
-        <h1>Register</h1>
-        <input type=text name=name>
-        <input type=text name=email>
-        <input type=text name=password>
-      <input type=submit value=Submit>
-    </form>
-    <h1>Links</h1>
-    <a href="auth/session">Session</a>
-    <a href="ml/train">Train</a>
-    <a href="ml/output.csv">Download</a>
-    """
+    return render_template('index.html')
+    # return """
+    # <!doctype html>
+    # <title>AnyPredict</title>
+    
+    # <form method="POST" action="auth/sign-in">
+    #     <h1>Log In</h1>
+    #     <input type=text name=email placeholder="email">
+    #     <input type=password name=password placeholder="password">
+    #   <input type=submit value=Submit>
+    # </form>
+    # <form method="POST" action="auth/register">
+    #     <h1>Register</h1>
+    #     <input type=text name=name placeholder="name">
+    #     <input type=text name=email placeholder="email">
+    #     <input type=password name=password placeholder="password">
+    #   <input type=submit value=Submit>
+    # </form>
+    # <h1>Upload new File</h1>
+    # <form method=post action="data/upload" enctype=multipart/form-data>
+    #   <input type=file name=file>
+    #   <input type=submit value=Upload>
+    # </form>
+    # <h1>Links</h1>
+    # <a href="auth/logout">Logout</a>
+    # <a href="auth/session">Session</a>
+    # <a href="ml/train">Train</a>
+    # <a href="ml/output.csv">Download</a>
+    # """
 
 
 @app.route("/auth/sign-in", methods=["POST"])
@@ -109,18 +112,29 @@ def handleFileUpload():
             return json.dumps({"status": "error"})
         file = request.files["file"]
         print("Saving")
-        file.save("{}/dataset_train.csv".format(localpath))
+        file.save("{}/dataset.csv".format(localpath))
         return json.dumps({"status": "uploaded"})
     else:
         return json.dumps({"status": "unauthenticated"})
 
+@app.route("/data/dataset.csv", methods=["GET"])
+def get_dataset():
+    if "user" in session:
+        email = session["user"]["email"]
+        filepath = "{}/{}/dataset.csv".format(UPLOADS_FOLDER, email)
+        if os.path.isfile(filepath):
+            return send_file(filepath, mimetype="text/csv")
+        else:
+            return json.dumps({"status": "error"})
+    else:
+        return json.dumps({"status": "unauthorized"})
 
 @app.route("/ml/train", methods=["GET"])
 def train_model():
     if "user" in session:
         email = session["user"]["email"]
         folderpath = "{}/{}".format(UPLOADS_FOLDER, email)
-        if os.path.isfile(folderpath + "/dataset_train.csv"):
+        if os.path.isfile(folderpath + "/dataset.csv"):
             is_success = linear_regression(email)
             return json.dumps({"status": "complete"}) if is_success else json.dumps({"status":"error"})
         else:
@@ -140,3 +154,4 @@ def get_output():
             return json.dumps({"status": "error"})
     else:
         return json.dumps({"status": "unauthorized"})
+

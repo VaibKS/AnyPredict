@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AnyPredict</title>
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+</head>
+
+<body>
+
+    <div class="flex w-full p-6 items-center border-b-2">
+        <h2
+            class="text-3xl font-black tracking-tighter text bg-clip-text text-transparent bg-gradient-to-r from-pink-400 to-blue-500">
+            AnyPredict</h2>
+    </div>
+
+    <div class="text-center my-12 space-y-3">
+        <div>
+            <a href="#sign-in" class="mx-2 text-pink-600">Sign In</a>
+            <span class="text-gray-500">&bullet;</span>
+            <a href="#register" class="mx-2 text-pink-600">Register</a>
+        </div>
+        <div class="">
+            <a href="/auth/session" class="mx-2 text-pink-600">View Session</a>
+            <span class="text-gray-500">&bullet;</span>
+            <a href="/ml/train" class="mx-2 text-pink-600">Train Model</a>
+            <span class="text-gray-500">&bullet;</span>
+            <a href="/ml/output.csv" class="mx-2 text-pink-600">Download Output</a>
+            <span class="text-gray-500">&bullet;</span>
+            <a href="/data/dataset.csv" class="mx-2 text-pink-600">Download Dataset</a>
+        </div>
+    </div>
+
+    <hr class="my-12" />
+
+    <div class="w-full max-w-lg mx-auto p-4">
+        <h2 class="text-2xl font-medium text-pink-600 py-3 border-b-2">Test a model</h2>
+        <p class="my-4 text-sm text-gray-700">Upload a dataset for checking accuracy with a linear regression model</p>
+        <form method="POST" action="/data/upload" enctype="multipart/form-data" class="mt-6 space-y-6">
+            <div class="flex flex-col space-y-2">
+                <label class="text-gray-600 uppercase tracking-wide text-sm" for="dataset_file">Dataset</label>
+                <input type="file" name="file" id="dataset_file" />
+            </div>
+            <div class="divide-y-2">
+                <button class="w-full bg-pink-700 text-white tracking-wide py-2 uppercase">UPLOAD</button>
+                <button class="w-full bg-pink-700 text-white tracking-wide py-2 uppercase">TRAIN</button>
+            </div>
+            <button class="w-full bg-pink-700 text-white tracking-wide py-2 uppercase">DOWNLOAD OUTPUT</button>
+        </form>
+    </div>
+
+    <hr class="my-12" />
+
+    <div class="w-full max-w-sm mx-auto p-4" id="sign-in">
+        <h2 class="text-2xl font-medium text-pink-600 py-3 border-b-2">Sign In</h2>
+        <form class="mt-8" method="POST" action="/auth/sign-in">
+            <input type="text" name="email" class="w-full h-10 bg-gray-100 px-3 border-b-2" placeholder="Email" />
+            <input type="password" name="password" class="w-full h-10 bg-gray-100 px-3" placeholder="Password" />
+            <button
+                class="w-full h-10 mt-4 bg-pink-700 text-white font-bold text-sm tracking-wide transition shadow-xs hover:shadow-lg">LOG
+                IN</button>
+        </form>
+    </div>
+
+    <hr class="my-12" />
+
+    <div class="w-full max-w-sm mx-auto p-4" id="register">
+        <h2 class="text-2xl font-medium text-pink-600 py-3 border-b-2">Register</h2>
+        <form class="mt-8" method="POST" action="/auth/register">
+            <input type="text" name="name" class="w-full h-10 bg-gray-100 px-3 border-b-2" placeholder="Name" />
+            <input type="email" name="email" class="w-full h-10 bg-gray-100 px-3 border-b-2" placeholder="Email" />
+            <input type="password" name="password" class="w-full h-10 bg-gray-100 px-3" placeholder="Password" />
+            <button
+                class="w-full h-10 mt-4 bg-pink-700 text-white font-bold text-sm tracking-wide transition shadow-xs hover:shadow-lg">REGISTER</button>
+        </form>
+    </div>
+
+    <hr class="mt-12" />
+
+
+</body>
+
+</html>
