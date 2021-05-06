@@ -8,7 +8,7 @@ path = "uploads/"
 def linear_regression(username, dependent="y", independents=["x"]):
     try:
         local_path = "{}/{}".format(path, username)
-        dataset = pd.read_csv(local_path + "/dataset_train.csv")
+        dataset = pd.read_csv(local_path + "/dataset.csv")
 
         x = dataset[independents]
         y = dataset[dependent]

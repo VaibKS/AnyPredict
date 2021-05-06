@@ -8,6 +8,30 @@ from db import registerUser
 from ml import linear_regression
 from werkzeug.utils import secure_filename
 
+import pyAesCrypt
+
+from os import stat
+
+bufferSize = 64 * 1024
+password = "q3t6w9z_C"
+
+
+def decrypt_file(aes_filepath, csv_filepath):
+    try:
+        pyAesCrypt.decryptFile(aes_filepath, csv_filepath, password, bufferSize)
+        return True
+    except:
+        return False
+
+
+def encrypt_file(csv_filepath, aes_filepath):
+    try:
+        pyAesCrypt.encryptFile(csv_filepath, aes_filepath, password, bufferSize)
+        return True
+    except:
+        return False
+
+
 UPLOADS_FOLDER = "uploads"
 
 app = Flask(__name__)
@@ -16,40 +40,13 @@ cors = CORS(app)
 app.secret_key = os.environ["SECRET_KEY"]
 app.config["UPLOAD_FOLDER"] = UPLOADS_FOLDER
 
-if not os.path.isdir('uploads'):
-    os.mkdir('uploads')
+if not os.path.isdir("uploads"):
+    os.mkdir("uploads")
+
 
 @app.route("/")
 def hello_world():
-    return render_template('index.html')
-    # return """
-    # <!doctype html>
-    # <title>AnyPredict</title>
-    
-    # <form method="POST" action="auth/sign-in">
-    #     <h1>Log In</h1>
-    #     <input type=text name=email placeholder="email">
-    #     <input type=password name=password placeholder="password">
-    #   <input type=submit value=Submit>
-    # </form>
-    # <form method="POST" action="auth/register">
-    #     <h1>Register</h1>
-    #     <input type=text name=name placeholder="name">
-    #     <input type=text name=email placeholder="email">
-    #     <input type=password name=password placeholder="password">
-    #   <input type=submit value=Submit>
-    # </form>
-    # <h1>Upload new File</h1>
-    # <form method=post action="data/upload" enctype=multipart/form-data>
-    #   <input type=file name=file>
-    #   <input type=submit value=Upload>
-    # </form>
-    # <h1>Links</h1>
-    # <a href="auth/logout">Logout</a>
-    # <a href="auth/session">Session</a>
-    # <a href="ml/train">Train</a>
-    # <a href="ml/output.csv">Download</a>
-    # """
+    return render_template("index.html")
 
 
 @app.route("/auth/sign-in", methods=["POST"])
@@ -110,12 +107,23 @@ def handleFileUpload():
 
         if "file" not in request.files:
             return json.dumps({"status": "error"})
+
         file = request.files["file"]
-        print("Saving")
-        file.save("{}/dataset.csv".format(localpath))
-        return json.dumps({"status": "uploaded"})
+
+        aes_filepath = "{}/dataset.csv.aes".format(localpath)
+        csv_filepath = "{}/dataset.csv".format(localpath)
+
+        file.save(aes_filepath)
+
+        if decrypt_file(aes_filepath, csv_filepath):
+            os.remove(aes_filepath)
+            return json.dumps({"status": "uploaded"})
+        else:
+            os.remove(aes_filepath)
+            return json.dumps({"status": "decrypt-error"})
     else:
         return json.dumps({"status": "unauthenticated"})
+
 
 @app.route("/data/dataset.csv", methods=["GET"])
 def get_dataset():
@@ -129,29 +137,50 @@ def get_dataset():
     else:
         return json.dumps({"status": "unauthorized"})
 
+
 @app.route("/ml/train", methods=["GET"])
 def train_model():
     if "user" in session:
         email = session["user"]["email"]
         folderpath = "{}/{}".format(UPLOADS_FOLDER, email)
-        if os.path.isfile(folderpath + "/dataset.csv"):
+        csv_path = folderpath + "/dataset.csv"
+        output_path = folderpath + "/output.csv"
+        aes_path = folderpath + "/output.csv.aes"
+        if os.path.isfile(csv_path):
             is_success = linear_regression(email)
-            return json.dumps({"status": "complete"}) if is_success else json.dumps({"status":"error"})
+            encrypt_file(output_path, aes_path)
+            return (
+                json.dumps({"status": "complete"})
+                if is_success
+                else json.dumps({"status": "error"})
+            )
         else:
             return json.dumps({"status": "no_files"})
     else:
         return json.dumps({"status": "unauthorized"})
 
 
-@app.route("/ml/output.csv", methods=["GET"])
-def get_output():
+@app.route("/ml/output.csv.aes", methods=["GET"])
+def get_output_aes():
     if "user" in session:
         email = session["user"]["email"]
-        filepath = "{}/{}/output.csv".format(UPLOADS_FOLDER, email)
+        filepath = "{}/{}/output.csv.aes".format(UPLOADS_FOLDER, email)
         if os.path.isfile(filepath):
-            return send_file(filepath, mimetype="text/csv")
+            return send_file(filepath, mimetype="application/octet-stream")
         else:
             return json.dumps({"status": "error"})
     else:
         return json.dumps({"status": "unauthorized"})
 
+
+@app.route("/ml/output.csv", methods=["GET"])
+def get_output_csv():
+    if "user" in session:
+        email = session["user"]["email"]
+        filepath = "{}/{}/output.csv".format(UPLOADS_FOLDER, email)
+        if os.path.isfile(filepath):
+            return send_file(filepath, mimetype="application/octet-stream")
+        else:
+            return json.dumps({"status": "error"})
+    else:
+        return json.dumps({"status": "unauthorized"})
