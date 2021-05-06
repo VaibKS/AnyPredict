@@ -5,3 +5,4 @@ dnspython
 gunicorn
 mongoengine
 flask_cors
+pyAesCrypt
